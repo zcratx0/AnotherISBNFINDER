@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <title>Carpi Libro</title>
+</head>
+<body class="">
+    <!--
+        Persona:
+            -   Leidos.
+            -   Leyendo.
+            -   Queriendo Leer.
+        Libros:
+            -   Nombre.
+            -   Author.
+            -   ISBN.
+            -   Sinopsis.
+            -   Portada
+    -->
+    <div class="">
+        <nav>
+            <div class="nav-wrapper">
+                <a href="" class="right">Another ISBN Searcher</a>
+                <ul>
+                    <li><a href="#INICIO">INICIO</a></li>
+                    <li><a href="#BOOKS">MIS LIBROS</a></li>
+                </ul>
+                <div class="row red lighten-2">
+                    <div class="input-field col s12 ">
+                      <i class="material-icons prefix">search</i>
+                      <input type="text" id="autocomplete-input" class="autocomplete" oninput="updateSearchBar(this)" onchange="search(this)">
+                    </div>
+                  </div>
+            </div>
+        </nav>
+
+
+        <div class="lime lighten-5 row s12"  id="searchPanel">
+        </div>
+        
+        <div class="lime lighten-5 row s12"  id="cardPanel">
+        </div>
+
+
+
+        </div>
+    </div>
+</body>
+<style>
+</style>
+<script>
+    M.AutoInit();
+    async function searchBook(TYPE, isbn) {
+        await fetch('https://www.googleapis.com/books/v1/volumes?q=isbn:'+isbn).then(response => response.json().then(
+            function (response) {
+                console.log(response);
+                createNewBook(TYPE,response.items[0].volumeInfo.title,response.items[0].volumeInfo.authors,isbn, response.items[0].searchInfo.textSnippet, response.items[0].volumeInfo.publishedDate)
+            }
+            ));
+    }
+
+
+    function createNewBook(TYPE,TITLE, AUTHOR, ISBN, DESCRIPTION, DATE) {
+        let cardPanel = document.getElementById('cardPanel');
+        if (TYPE == 'searchBooks') cardPanel = document.getElementById('searchPanel');
+        
+        cardPanel.innerHTML += 
+        `<div class='card col s3 book sticky-action horizontal medium orange lighten-4' id="card${ISBN}">
+            <div class='card-image '><img src='https://covers.openlibrary.org/b/isbn/${ISBN}-M.jpg' alt='' class='portada'></div>
+            <span class='card-content activator '>
+                <span class='card-title activator s2'>
+                    ${TITLE}<br>
+                    ${AUTHOR}               
+                    <p><b>ISBN:</b> ${ISBN}</p>
+                    <p><b>FECHA:</b> ${DATE}</p>    
+                </span>
+            </span>
+            <div class='card-reveal  yellow lighten-4 '>
+                <span class='card-title'>
+                    <span class='activator'>${TITLE}<i class='material-icons right'>close</i></span>
+                </span>
+                <p class='descripcion activator'>${DESCRIPTION}</p>
+            </div>
+            <div class="card-action center amber lighten-4">
+                <form onchange="updateCookie(${ISBN})">
+                    <label>
+                        <input name="check${ISBN}" type="radio" checked/>
+                        <span>-</span>
+                    </label>
+                    <label>
+                        <input name="check${ISBN}" type="radio" />
+                        <span>LEIDO</span>
+                    </label>
+                    <label>
+                        <input name="check${ISBN}" type="radio"/>
+                        <span>LEYENDO</span>
+                    </label>
+                    <label>
+                        <input name="check${ISBN}" type="radio"/>
+                        <span>QUERIENDO LEER</span>
+                    </label>
+                    <i class='material-icons right' onclick="removeCookie(${ISBN})">remove_circle</i>
+                </form>
+            </div>
+        </div>`
+
+    }
+
+
+    //  Search
+    var elems = document.querySelectorAll('.autocomplete');  
+    var searchbar = M.Autocomplete.init(elems);
+
+    async function search(self) {
+        if (self.value == "") return;
+        await fetch('https://www.googleapis.com/books/v1/volumes?q='+self.value).then(response => response.json()).then(
+            function (response) {
+                cardPanel = document.getElementById('searchPanel').innerHTML = '';
+                var max = 10;
+                for (i = 0; i < max; i++) {
+                    let ISBN;
+                    try {
+                        ISBN = response.items[i].volumeInfo.industryIdentifiers[1].identifier
+                        searchBook('searchBooks',ISBN);
+                    } catch (error) {ISBN = null}
+                }
+            }
+        );
+    }
+
+    async function updateSearchBar(self) {
+        if (self.value == "") return;
+        await fetch('https://www.googleapis.com/books/v1/volumes?q='+self.value).then(response => response.json()).then(
+            function (response) {
+                cardPanel = document.getElementById('searchPanel').innerHTML = '';
+                var x = '{';
+                for (i = 0; i < response.items.length; i++) {
+                    let ISBN;
+                    try {
+                        ISBN = response.items[i].volumeInfo.industryIdentifiers[1].identifier
+                        text = response.items[i].volumeInfo.title.replaceAll('"', "'");
+                        x += '"' +  text + '" : ' + null;
+                    } catch (error) {ISBN = null}
+                    if (i != response.items.length-1) {x+= ',';}
+                }
+                x += '}';
+                let y = JSON.parse(x);
+                searchbar[0].updateData(y);
+                searchbar[0].open();
+            }
+        );
+    }
+
+
+
+    let books = [''];
+    if (!document.cookie.match("books")) {document.cookie = "books=";} 
+    else {books = document.cookie.match("books").input.replace("books=", "").split(',');}
+    //  LOAD BOOKS
+    for (i =0; i < books.length; i++) {
+        if (!books[i]== "") searchBook('mybooks', books[i]);}
+
+
+    //  ADD BOOK
+    function updateCookie(ISBN) {
+        if (!document.cookie.match("books").input.includes(ISBN))  {
+            document.cookie = "books=" + ISBN + ',' + books;
+            searchBook('mybooks',ISBN);
+        }
+    }
+    //  Remove BOOK
+    function removeCookie(ISBN) {
+        document.getElementById(`card${ISBN}`).remove();
+        if (document.cookie.match("books").input.includes(ISBN)) document.cookie = document.cookie.match("books").input.replace(ISBN+',', "");
+    }
+
+</script>
+</html>
