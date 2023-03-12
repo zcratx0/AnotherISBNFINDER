@@ -12,40 +12,22 @@
     <title>Carpi Libro</title>
 </head>
 <body class="">
-    <!--
-        Persona:
-            -   Leidos.
-            -   Leyendo.
-            -   Queriendo Leer.
-        Libros:
-            -   Nombre.
-            -   Author.
-            -   ISBN.
-            -   Sinopsis.
-            -   Portada
-    -->
     <div class="">
         <nav>
             <div class="nav-wrapper">
-                <a href="" class="right">Another ISBN Searcher</a>
-                <ul>
-                    <li><a href="#INICIO">INICIO</a></li>
-                    <li><a href="#BOOKS">MIS LIBROS</a></li>
-                </ul>
                 <div class="row red lighten-2">
-                    <div class="input-field col s12 ">
-                      <i class="material-icons prefix">search</i>
-                      <input type="text" id="autocomplete-input" class="autocomplete" oninput="updateSearchBar(this)" onchange="search(this)">
+                    <a href="" class="left s1">Another ISBN Searcher</a>
+                    <div class="input-field col s11 right ">
+                      <input type="text" id="autocomplete-input" class="autocomplete" oninput="updateSearchBar(this)" onchange="search(this)" placeholder="Search by NAME or ISBN">
                     </div>
                   </div>
             </div>
         </nav>
 
-
-        <div class="lime lighten-5 row s12"  id="searchPanel">
+        <div class="lime lighten-5 row"  id="searchPanel">
         </div>
         
-        <div class="lime lighten-5 row s12"  id="cardPanel">
+        <div class="lime lighten-5 row"  id="cardPanel">
         </div>
 
 
@@ -54,6 +36,9 @@
     </div>
 </body>
 <style>
+    .holder {
+        margin-top: 1px;
+    }
 </style>
 <script>
     M.AutoInit();
@@ -72,21 +57,21 @@
         if (TYPE == 'searchBooks') cardPanel = document.getElementById('searchPanel');
         
         cardPanel.innerHTML += 
-        `<div class='card col s3 book sticky-action horizontal medium orange lighten-4' id="card${ISBN}">
-            <div class='card-image '><img src='https://covers.openlibrary.org/b/isbn/${ISBN}-M.jpg' alt='' class='portada'></div>
+        `
+        <div class='holder col s12 m6 l3 xl3' id="card${ISBN}">
+        <div class='card book sticky-action horizontal medium orange lighten-4 hoverable' >
+            <div class='card-image s2 '><img src='https://covers.openlibrary.org/b/isbn/${ISBN}-M.jpg' alt='' class='portada'></div>
             <span class='card-content activator '>
-                <span class='card-title activator s2'>
-                    ${TITLE}<br>
-                    ${AUTHOR}               
-                    <p><b>ISBN:</b> ${ISBN}</p>
-                    <p><b>FECHA:</b> ${DATE}</p>    
-                </span>
+                <span class='card-title s1 '><p>${TITLE}</p></span>
+                <p>${AUTHOR}</p>
+                <p><b>ISBN:</b>${ISBN}</p>
+                <p><b>DATE:</b>${DATE}</p> 
             </span>
             <div class='card-reveal  yellow lighten-4 '>
                 <span class='card-title'>
                     <span class='activator'>${TITLE}<i class='material-icons right'>close</i></span>
                 </span>
-                <p class='descripcion activator'>${DESCRIPTION}</p>
+                <p class='descripcion activator flow-text'>${DESCRIPTION}</p>
             </div>
             <div class="card-action center amber lighten-4">
                 <form onchange="updateCookie(${ISBN})">
@@ -106,10 +91,12 @@
                         <input name="check${ISBN}" type="radio"/>
                         <span>QUERIENDO LEER</span>
                     </label>
-                    <i class='material-icons right' onclick="removeCookie(${ISBN})">remove_circle</i>
+                    <i class='material-icons right' onclick="removeCookie(${ISBN})" id="removebtn">remove_circle</i>
                 </form>
             </div>
-        </div>`
+        </div>
+        </div>
+        `
 
     }
 
